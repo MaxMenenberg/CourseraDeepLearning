@@ -91,11 +91,17 @@ class NeuralNetwork:
         return 2*(yhat - y)
     
     def CrossEntroyLoss(yhat, y):
+        if((yhat <= 0 ).any()):
+            yhat = 0.1; #Avoid negative logs
+        elif ((1-yhat <= 0 ).any()):
+            yhat = 0.9;
         return -y*np.log(yhat) - (1-y)*np.log(1-yhat)
-    
+        
     def CrossEntroyLossDx(yhat, y):
-        if((yhat == 1).any() | (yhat == 0).any()):
-            yhat = yhat + 0.001; #Avoid divide by 0 errors
+        if((yhat == 0 ).any()):
+             yhat = 0.1 #Avoid Divide by 0
+        elif ((yhat == 1).any()):
+            yhat = 0.9
         return -(y/yhat) + (1-y)/(1-yhat)
         
     
