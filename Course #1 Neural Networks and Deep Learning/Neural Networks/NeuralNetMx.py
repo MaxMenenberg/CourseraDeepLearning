@@ -168,7 +168,7 @@ class NeuralNetwork:
         # Now we can do back propagation
         dCdyhat = self.lossFunDx(yhat, Y)/m
         delK = np.zeros((1,1))
-        for j in range(len(self.layers)-1, 0, -1):
+        for j in range(len(self.layers)-1, -1, -1):
             if (j == len(self.layers)-1):
                 d1 = self.layers[j].actFunDx(ZList[j])
                 delK = dCdyhat*d1
