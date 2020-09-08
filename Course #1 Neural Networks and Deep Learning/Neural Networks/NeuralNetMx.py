@@ -71,3 +71,125 @@ class Layer:
         
     def assignBias(self,b):
         self.bias = b
+        
+class NeuralNetwork:
+    
+    layers = []
+    CostFunList = ['MSE', 'CrossEntropy']
+    def __init__(self, costFunction, learningRate, initialWeightScale):
+        self.costFunction = costFunction
+        self.learningRate = learningRate
+        self.initialWeightScale = initialWeightScale;
+        assert costFunction in self.CostFunList, \
+            'Activation function not valid. Select a valid activation function'\
+                ' [MSE, CrossEntropy]'
+    
+    def MSELoss(yhat, y):
+        return np.power((yhat-y),2)
+    
+    def MSELossDx(yhat, y):
+        return 2*(yhat - y)
+    
+    def CrossEntroyLoss(yhat, y):
+        return -y*np.log(yhat) - (1-y)*np.log(1-yhat)
+    
+    def CrossEntroyLossDx(yhat, y):
+        if((yhat == 1).any() | (yhat == 0).any()):
+            yhat = yhat + 0.001; #Avoid divide by 0 errors
+        return -(y/yhat) + (1-y)/(1-yhat)
+        
+    
+    # The dictionary of function pointers that allow the lossFunction 
+    # variable to control which function gets called
+    __CostFunctionList = {
+        'MSE': MSELoss,
+        'CrossEntropy':CrossEntroyLoss,
+        }
+    
+    __CostFunctionDerivativeList = {
+        'MSE': MSELossDx,
+        'CrossEntropy':CrossEntroyLossDx,
+        }
+    
+    def lossFun(self, yhat, y):
+        return self.__CostFunctionList[self.costFunction](yhat, y)
+    
+    def lossFunDx(self, yhat, y):
+        return self.__CostFunctionDerivativeList[self.costFunction](yhat,y)
+    
+    def addLayer(self, layerToAdd):
+        self.layers.append(layerToAdd)
+     
+    # X is input data of the form [nx, m] when nx is the number of features
+    # and m is the number of samples
+    # Y is of a similar for as X with size [ny, m]
+    def initializeNetworkWeights(self, X, Y):
+        weightScaling = self.initialWeightScale
+        for n in range(len(self.layers)):
+            if(n == 0):
+                self.layers[n].assignBias(0)
+                self.layers[n].assignWeights(weightScaling*np.random.randn(self.layers[n].neuronCount, X.shape[0]))
+            else:
+                self.layers[n].assignWeights(weightScaling*np.random.randn(self.layers[n].neuronCount, self.layers[n-1].neuronCount))
+    
+    def getLayers(self):
+        return self.layers
+                
+    def forwardProp(self, X):
+        aY = X
+        for j in range(len(self.layers)):
+            Z = np.matmul(self.layers[j].weights, aY) + self.layers[j].bias
+            aY = self.layers[j].actFun(Z)
+        return aY;
+    
+    def backwardProp(self, X, Y):
+        
+        # First we need to do forware propagation to record all of the inputs 
+        # and outputs to the layers
+        m = X.shape[1]
+        aYList = [];
+        ZList = [];
+        aY = X
+        aYList.append(X)
+        for j in range(len(self.layers)):
+            Z = np.matmul(self.layers[j].weights, aY) + self.layers[j].bias
+            ZList.append(Z)
+            aY = self.layers[j].actFun(Z)
+            aYList.append(aY)
+        yhat = aY
+        
+
+        # Now we can do back propagation
+        dCdyhat = self.lossFunDx(yhat, Y)/m
+        delK = np.zeros((1,1))
+        for j in range(len(self.layers)-1, 0, -1):
+            if (j == len(self.layers)-1):
+                d1 = self.layers[j].actFunDx(ZList[j])
+                delK = dCdyhat*d1
+                dW = np.matmul(delK, aYList[j].T)
+                db = np.sum(delK, axis = 1, keepdims=True)
+            else:
+                d1 = self.layers[j+1].weights
+                d2 = self.layers[j].actFunDx(ZList[j])
+                delK = np.matmul(d1.T, delK)*d2
+                dW = np.matmul(delK, aYList[j].T)
+                db = np.sum(delK, axis = 1, keepdims=True)
+            
+            W = self.layers[j].weights
+            b = self.layers[j].bias
+            
+            self.layers[j].assignWeights(W - self.learningRate*dW)
+            self.layers[j].assignBias(b - self.learningRate*db)
+            
+        Cost = np.sum(self.lossFun(yhat, Y))/m
+        return Cost
+    
+    def train(self,X,Y, iterationNum):
+        costList = []
+        for n in range(iterationNum):
+            cost = self.backwardProp(X,Y)
+            costList.append(cost)
+        return costList
+        
+        
+        
