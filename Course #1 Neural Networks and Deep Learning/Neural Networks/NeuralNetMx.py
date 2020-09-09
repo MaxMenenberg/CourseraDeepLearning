@@ -72,9 +72,13 @@ class Layer:
     def assignBias(self,b):
         self.bias = b
         
+# A class that describes a basic neural network
 class NeuralNetwork:
     
+    # A network consists of a list of layers described by their weights and
+    # dimensions
     layers = []
+    
     CostFunList = ['MSE', 'CrossEntropy']
     def __init__(self, costFunction, learningRate, initialWeightScale):
         self.costFunction = costFunction
@@ -105,7 +109,7 @@ class NeuralNetwork:
         return -(y/yhat) + (1-y)/(1-yhat)
         
     
-    # The dictionary of function pointers that allow the lossFunction 
+    # The dictionary of function pointers that allow the costFunction 
     # variable to control which function gets called
     __CostFunctionList = {
         'MSE': MSELoss,
