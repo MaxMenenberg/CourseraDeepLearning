@@ -33,16 +33,15 @@ class Layer:
         return 4/(np.power((np.exp(-x)+np.exp(x)),2))
     
     def relu(x):
-        if (x < 0):
-            return 0
-        else:
-            return x
+        y = x
+        y[y < 0] = 0
+        return y
     
     def relu_dx(x):
-        if (x < 0):
-            return 0
-        else:
-            return 1
+        y = x
+        y[y <= 0] = 0
+        y[y > 0] = 1
+        return y
     
     # The dictionary of function pointers that allow the activationFunction 
     # variable to control which function gets called
@@ -136,8 +135,8 @@ class NeuralNetwork:
     def initializeNetworkWeights(self, X, Y):
         weightScaling = self.initialWeightScale
         for n in range(len(self.layers)):
+            self.layers[n].assignBias(0)
             if(n == 0):
-                self.layers[n].assignBias(0)
                 self.layers[n].assignWeights(weightScaling*np.random.randn(self.layers[n].neuronCount, X.shape[0]))
             else:
                 self.layers[n].assignWeights(weightScaling*np.random.randn(self.layers[n].neuronCount, self.layers[n-1].neuronCount))
@@ -186,10 +185,10 @@ class NeuralNetwork:
                 db = np.sum(delK, axis = 1, keepdims=True)
             
             W = self.layers[j].weights
-            b = self.layers[j].bias
+            Bias = self.layers[j].bias
             
             self.layers[j].assignWeights(W - self.learningRate*dW)
-            self.layers[j].assignBias(b - self.learningRate*db)
+            self.layers[j].assignBias(Bias - self.learningRate*db)
             
         Cost = np.sum(self.lossFun(yhat, Y))/m
         return Cost
