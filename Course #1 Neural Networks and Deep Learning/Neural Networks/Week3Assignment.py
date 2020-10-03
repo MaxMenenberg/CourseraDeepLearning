@@ -8,7 +8,7 @@ X, Y = planar_utils.load_planar_dataset()
 
 plt.scatter(X[0, :], X[1, :], c=Y, s=40, cmap=plt.cm.Spectral);
 
-Net = nn.NeuralNetwork('MSE', 1.2, 0.1)
+Net = nn.NeuralNetwork('MSE', 1.2, 0.1, L2Reg = 0)
 
 l1 = nn.Layer(4, 'tanh')
 l2 = nn.Layer(4, 'tanh')

@@ -79,7 +79,8 @@ class NeuralNetwork:
     layers = []
     
     CostFunList = ['MSE', 'CrossEntropy']
-    def __init__(self, costFunction, learningRate, initialWeightScale):
+    def __init__(self, costFunction, learningRate, initialWeightScale, L2Reg = 0):
+        self.L2RegLambda = L2Reg;
         self.costFunction = costFunction
         self.learningRate = learningRate
         self.initialWeightScale = initialWeightScale;
@@ -175,13 +176,15 @@ class NeuralNetwork:
             if (j == len(self.layers)-1):
                 d1 = self.layers[j].actFunDx(ZList[j])
                 delK = dCdyhat*d1
-                dW = np.matmul(delK, aYList[j].T)
+                dW = np.matmul(delK, aYList[j].T) +  \
+                    self.L2RegLambda*self.layers[j].weights/m
                 db = np.sum(delK, axis = 1, keepdims=True)
             else:
                 d1 = self.layers[j+1].weights
                 d2 = self.layers[j].actFunDx(ZList[j])
                 delK = np.matmul(d1.T, delK)*d2
-                dW = np.matmul(delK, aYList[j].T)
+                dW = np.matmul(delK, aYList[j].T) + \
+                    self.L2RegLambda*self.layers[j].weights/m
                 db = np.sum(delK, axis = 1, keepdims=True)
             
             W = self.layers[j].weights
