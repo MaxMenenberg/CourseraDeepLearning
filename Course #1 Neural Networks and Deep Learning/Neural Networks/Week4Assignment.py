@@ -68,7 +68,7 @@ XflatTest = flattenImageData(testData.get('testX'))
 Ytest = np.array(testData.get('testY')).reshape(1, XflatTest.shape[1])
 
 
-Net = nn.NeuralNetwork('MSE', 0.125, 0.05)
+Net = nn.NeuralNetwork('MSE', 0.125, 0.05, 0.05)
 
 
 l1 = nn.Layer(60, 'tanh')
@@ -82,7 +82,7 @@ Net.addLayer(l3)
 Net.addLayer(l5)
 
 Net.initializeNetworkWeights(XflatTrain,Ytrain)
-epoch = 4000
+epoch = 2000
 print(Net.layers[0].weights)
 cost = Net.train(XflatTrain,Ytrain,epoch)
 print(Net.layers[0].weights)

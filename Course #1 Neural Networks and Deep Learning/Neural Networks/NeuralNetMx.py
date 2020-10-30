@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 #Class that describes a layer of a basic neural network
 class Layer:
@@ -78,6 +79,12 @@ class NeuralNetwork:
     # dimensions
     layers = []
     
+    # These are terms used for the keeping track of variables for the adaptive 
+    # moment estimation optimization i.e. AdamOpt
+    adamOpt = False;
+
+
+    
     CostFunList = ['MSE', 'CrossEntropy']
     def __init__(self, costFunction, learningRate, initialWeightScale, L2Reg = 0):
         self.L2RegLambda = L2Reg;
@@ -152,7 +159,7 @@ class NeuralNetwork:
             aY = self.layers[j].actFun(Z)
         return aY;
     
-    def backwardProp(self, X, Y):
+    def backwardProp(self, X, Y, t):
         
         # First we need to do forware propagation to record all of the inputs 
         # and outputs to the layers
@@ -199,7 +206,7 @@ class NeuralNetwork:
     def train(self,X,Y, iterationNum):
         costList = []
         for n in range(iterationNum):
-            cost = self.backwardProp(X,Y)
+            cost = self.backwardProp(X,Y,n)
             costList.append(cost)
         return costList
         
